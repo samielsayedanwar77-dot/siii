@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المشد عمك يا كلب - Pro Chess</title>
+    <title>المشد عمك يا كلب - Pro Chess Online</title>
     <!-- مكتبة قواعد الشطرنج -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <!-- مكتبة اتصال أونلاين PeerJS -->
@@ -23,7 +23,6 @@
             --text-light: #ffffff;
             --text-muted: #a09d98;
             
-            /* ألوان الرقعة الافتراضية (Classic Green) */
             --board-dark: #769656;
             --board-light: #eeeed2;
             --highlight: rgba(255, 255, 51, 0.5);
@@ -31,7 +30,6 @@
             --in-check: rgba(231, 76, 60, 0.85);
         }
 
-        /* 🎨 الثيمات */
         body.theme-classic { --board-dark: #769656; --board-light: #eeeed2; }
         body.theme-gold { --board-dark: #b8860b; --board-light: #f5deb3; }
         body.theme-ocean { --board-dark: #4682b4; --board-light: #e0f7fa; }
@@ -209,7 +207,6 @@
 
         @keyframes pulseCheck { 0% { opacity: 0.8; } 100% { opacity: 1; } }
 
-        /* 👑 تحسين القطع إضافياً 🎨 */
         .piece-element {
             font-weight: bold;
             line-height: 1;
@@ -443,14 +440,13 @@
     <!-- الشريط الجانبي -->
     <div class="sidebar">
 
-        <!-- 👤 اسم اللاعب والتسجيل والتصرف بالثيم -->
+        <!-- 👤 اسم اللاعب والتسجيل والثيمات -->
         <div class="card">
             <h3>👤 الملف الشخصي والمظهر</h3>
             <div style="display: flex; gap: 4px; margin-bottom: 6px;">
                 <input type="text" id="username-input" placeholder="سجل اسمك هنا..." style="margin:0;">
                 <button class="btn-dark" onclick="saveUsername()" style="margin:0; width: 35%;">تسجيل/تحديث</button>
             </div>
-            <!-- اختيار الثيم المفضل -->
             <label style="font-size: 11px; color: var(--text-muted);">اختر ثيم الرقعة:</label>
             <select id="theme-select" onchange="changeTheme(this.value)">
                 <option value="theme-classic">🪵 كلاسيكي (Classic Green)</option>
@@ -460,7 +456,7 @@
             </select>
         </div>
 
-        <!-- 🤖 خيارات البوت -->
+        <!-- 🤖 اللعب ضد البوت -->
         <div class="card">
             <h3>🤖 اللعب ضد البوت</h3>
             <label style="font-size: 11px; color: var(--text-muted);">اختر مستوى البوت:</label>
@@ -473,23 +469,29 @@
             <button class="btn-green" onclick="startBotGame()">بدء مباراة ضد البوت ⚡</button>
         </div>
 
-        <!-- 🌐 أونلاين وصديقك وتمرير الكود -->
+        <!-- 🌐 نظام أونلاين المحسن ومعدل بالكامل -->
         <div class="card">
-            <h3>🌐 اللعب أونلاين بالتحدي السريع</h3>
+            <h3>🌐 اللعب أونلاين السريع</h3>
             <div style="margin-bottom: 6px;">
-                <label style="font-size: 11px; color: var(--text-muted);">كود الاتصال الخاص بك:</label>
+                <label style="font-size: 11px; color: var(--text-muted);">كودك الخاص التحدي المباشر:</label>
                 <div style="display:flex; gap:4px;">
-                    <input type="text" id="my-peer-code" readonly style="margin:0; background:#191816; font-family:monospace;" value="جاري الجلب...">
+                    <input type="text" id="my-peer-code" readonly style="margin:0; background:#191816; font-family:monospace; font-size:11px;" value="جاري الاتصال بالسيرفر...">
                     <button class="btn-dark" onclick="copyMyCode()" style="margin:0; width:30%;">نسخ 📋</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 4px;">
-                <input type="text" id="peer-search-input" placeholder="أدخل كود المنافس للبحث..." style="margin:0;">
-                <button class="btn-dark" onclick="searchAndConnect()" style="margin:0; width: 35%;">تحدّي ⚔️</button>
+            
+            <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                <input type="text" id="peer-search-input" placeholder="أدخل كود المنافس للاتصال..." style="margin:0;">
+                <button class="btn-dark" onclick="connectToPeer()" style="margin:0; width: 35%;">تحدّي ⚔️</button>
             </div>
+
+            <div style="display: flex; gap: 4px;">
+                <button class="btn-green" onclick="reconnectOnlineServer()" style="background:#0082c8;">إعادة الاتصال بالسيرفر 🔄</button>
+            </div>
+
             <div class="connection-status">
                 <div class="status-dot" id="status-dot"></div>
-                <span id="status-text">جاري الاتصال بالسيرفر...</span>
+                <span id="status-text">جاري إعداد السيرفر...</span>
             </div>
         </div>
 
@@ -502,7 +504,7 @@
             </div>
         </div>
 
-        <!-- 🏆 لوحة المتصدرين (اللاعبون المسجلون) -->
+        <!-- 🏆 لوحة المتصدرين -->
         <div class="card">
             <h3>🏆 اللاعبون المسجلون (Leaderboard)</h3>
             <table class="leaderboard-table">
@@ -553,11 +555,9 @@
     let reviewIndex = -1;
     let activeBadge = null;
 
-    // المؤقت التنازلي
     let whiteTime = 600, blackTime = 600;
     let timerInterval = null;
 
-    // ELO والإحصائيات
     let playerELO = parseInt(localStorage.getItem('chess_diamond_elo')) || 1000;
     let playerStats = JSON.parse(localStorage.getItem('chess_stats')) || { wins: 0, losses: 0, draws: 0 };
     let userName = localStorage.getItem('chess_diamond_user') || ("Player" + Math.floor(1000 + Math.random() * 9000));
@@ -565,11 +565,9 @@
     document.getElementById('username-input').value = userName;
     document.getElementById('player-display-name').innerText = userName;
 
-    // ♟️ رموز القطع المحسنة والواضحة جداً
     const piecesSets = { 'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'P': '♟', 'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚' };
     const pieceValues = { p: 1, n: 3, b: 3.25, r: 5, q: 9, k: 0 };
 
-    /* --- 🎨 خيارات الثيمات --- */
     function changeTheme(themeName) {
         document.body.className = themeName;
         localStorage.setItem('chess_saved_theme', themeName);
@@ -580,7 +578,6 @@
         document.getElementById('theme-select').value = savedTheme;
     }
 
-    /* --- 🔊 مولد المؤثرات الصوتية النظيفة (Web Audio API) --- */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -623,7 +620,6 @@
         updateLeaderboard();
     }
 
-    /* --- 👤 حفظ الاسم والتسجيل التلقائي فوراً في التصنيف --- */
     function saveUsername() {
         const val = document.getElementById('username-input').value.trim();
         if (val) {
@@ -641,15 +637,12 @@
 
             initPeer();
             updateLeaderboard();
-            alert("✅ تم التسجيل وإضافتك إلى قائمة التصنيف بنجاح!");
+            alert("✅ تم التحديث وإضافتك في الترتيب!");
         }
     }
 
-    /* --- 🏆 قائمة المتصدرين الحقيقية --- */
     function updateLeaderboard() {
         let registeredUsers = JSON.parse(localStorage.getItem('chess_registered_users')) || {};
-        
-        // تسجيل المستخدم تلقائياً دون شروط
         registeredUsers[userName] = { elo: playerELO, wins: playerStats.wins, losses: playerStats.losses };
         localStorage.setItem('chess_registered_users', JSON.stringify(registeredUsers));
 
@@ -679,7 +672,6 @@
     }
     updateRankTitle();
 
-    /* --- إدارة التوقيت --- */
     function startTimer() {
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
@@ -721,54 +713,70 @@
         checkGameStatus(true);
     }
 
-    /* --- 🌐 سيرفر الأونلاين المظبوط كلياً (PeerJS) --- */
+    /* 🌐 إعداد الأونلاين المطور بالكامل لتجنب مشاكل عدم الاتصال 🌐 */
     let peer = null, conn = null;
-    let myCleanNameCode = "";
+    let myCleanID = "";
+
+    function generateUniqueID() {
+        return 'chess-' + Math.random().toString(36).substring(2, 8);
+    }
 
     function initPeer() {
-        if (peer) peer.destroy();
+        if (peer) {
+            peer.destroy();
+        }
 
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
         statusDot.className = 'status-dot connecting';
-        statusText.innerText = 'جاري الاتصال...';
+        statusText.innerText = 'جاري الاتصال بالسيرفر...';
 
-        // إنشاء كود اتصال نظيف ومثالي
-        myCleanNameCode = `chess_${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Math.floor(100 + Math.random() * 900)}`;
+        myCleanID = generateUniqueID();
 
-        peer = new Peer(myCleanNameCode, { host: '0.peerjs.com', port: 443, path: '/', secure: true });
+        peer = new Peer(myCleanID, {
+            debug: 1,
+            config: {'iceServers': [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]}
+        });
 
         peer.on('open', (id) => {
             statusDot.className = 'status-dot online';
-            statusText.innerText = 'متصل جاهز للعب!';
+            statusText.innerText = 'جاهز ومتصل بالسيرفر!';
             document.getElementById('my-peer-code').value = id;
         });
 
         peer.on('connection', (c) => {
-            conn = c; myColor = 'w'; isOnlineGame = true; isBotGame = false; isFlipped = false;
+            conn = c;
+            myColor = 'w'; 
+            isOnlineGame = true; 
+            isBotGame = false; 
+            isFlipped = false;
             resetGame();
             setupPeerListeners();
         });
+
+        peer.on('error', (err) => {
+            console.error("Peer Error:", err);
+            statusDot.className = 'status-dot';
+            statusText.innerText = 'خطأ اتصال: تأكد من الأنترنت ورست الاتصال';
+        });
     }
-    initPeer();
+
+    function reconnectOnlineServer() {
+        initPeer();
+    }
 
     function copyMyCode() {
         const codeInput = document.getElementById('my-peer-code');
         navigator.clipboard.writeText(codeInput.value);
-        alert(`📋 تم نسخ كود التحدي الخاص بك:\n${codeInput.value}`);
-    }
-
-    function registerOpponent(name, elo) {
-        let registeredUsers = JSON.parse(localStorage.getItem('chess_registered_users')) || {};
-        if (!registeredUsers[name]) {
-            registeredUsers[name] = { elo: elo || 1000, wins: 0, losses: 0 };
-            localStorage.setItem('chess_registered_users', JSON.stringify(registeredUsers));
-            updateLeaderboard();
-        }
+        alert(`📋 تم نسخ الكود الخاص بك:\n${codeInput.value}\nأرسله لصديقك ليدخل ضك فوراً!`);
     }
 
     function setupPeerListeners() {
         conn.on('open', () => {
+            // إرسال معلومات المصافحة المتبادلة
             conn.send({ type: 'handshake', name: userName, elo: playerELO });
         });
 
@@ -777,8 +785,23 @@
                 document.getElementById('black-name').innerText = data.name;
                 document.getElementById('opponent-elo').innerText = data.elo;
                 document.getElementById('opponent-avatar').innerText = "👤";
-                document.getElementById('game-status').innerText = `متصل أونلاين ضد: ${data.name}`;
-                registerOpponent(data.name, data.elo);
+                document.getElementById('game-status').innerText = `⚔️ ماتش أونلاين ضد: ${data.name}`;
+                
+                // لو كنا المستضيف ولم نرسل المصافحة، نرد بالمصافحة أيضاً
+                if (myColor === 'w') {
+                    conn.send({ type: 'handshake_ack', name: userName, elo: playerELO });
+                }
+                
+                resetGame();
+                updateBoard();
+                startTimer();
+            } else if (data.type === 'handshake_ack') {
+                document.getElementById('black-name').innerText = data.name;
+                document.getElementById('opponent-elo').innerText = data.elo;
+                document.getElementById('opponent-avatar').innerText = "👤";
+                document.getElementById('game-status').innerText = `⚔️ ماتش أونلاين ضد: ${data.name}`;
+                resetGame();
+                updateBoard();
                 startTimer();
             } else if (data.move) {
                 const moveResult = game.move(data.move);
@@ -792,29 +815,41 @@
                 }
             }
         });
-    }
 
-    function searchAndConnect() {
-        const query = document.getElementById('peer-search-input').value.trim();
-        if (!query) {
-            alert("يرجى أدخال كود المنافس أولاً!");
-            return;
-        }
-
-        conn = peer.connect(query);
-        myColor = 'b'; isOnlineGame = true; isBotGame = false; isFlipped = true;
-        resetGame();
-
-        conn.on('open', () => {
-            setupPeerListeners();
-            startTimer();
+        conn.on('close', () => {
+            alert("⚠️ انقطع الاتصال بالمنافس!");
+            document.getElementById('game-status').innerText = "انقطع اتصال المنافس";
         });
     }
 
-    /* --- التقييم ومراجعة النقلات --- */
+    function connectToPeer() {
+        const targetCode = document.getElementById('peer-search-input').value.trim();
+        if (!targetCode) {
+            alert("يرجى كتابة كود المنافس في الخانة أولاً!");
+            return;
+        }
+
+        if (targetCode === myCleanID) {
+            alert("لا يمكنك الاتصال بنفسك!");
+            return;
+        }
+
+        document.getElementById('game-status').innerText = "جاري الاتصال بالمنافس...";
+        conn = peer.connect(targetCode, { reliable: true });
+        myColor = 'b'; 
+        isOnlineGame = true; 
+        isBotGame = false; 
+        isFlipped = true;
+
+        setupPeerListeners();
+    }
+
+    initPeer();
+
+    /* --- التحليل والتقييم --- */
     function getMoveAnalysis(move) {
         if (move.san.includes('#')) return { title: "Brilliant (كش مات)", icon: "💎", color: "#00d2ff" };
-        if (move.captured && ['q', 'r'].includes(move.captured)) return { title: "Great Move (تضحية/أخذ مميز)", icon: "🎯", color: "#81b64c" };
+        if (move.captured && ['q', 'r'].includes(move.captured)) return { title: "Great Move (تضحية/أخذ)", icon: "🎯", color: "#81b64c" };
         if (move.san.includes('+')) return { title: "Best Move (كش أفضيلة)", icon: "⭐", color: "#f1c40f" };
         if (move.captured) return { title: "Good Move (أخذ قطعة)", icon: "👍", color: "#2ecc71" };
         return { title: "Book Move", icon: "📖", color: "#a09d98" };
@@ -955,7 +990,6 @@
         document.getElementById('eval-fill').style.height = `${percent}%`;
     }
 
-    /* --- البوت مع مستويات الصعوبة --- */
     function startBotGame() {
         resetGame();
         isBotGame = true; isOnlineGame = false; isFlipped = false; myColor = 'w';
@@ -1023,7 +1057,6 @@
         updateTimerDisplay();
     }
 
-    /* --- نهاية المباراة --- */
     function checkGameStatus(timeOutOccurred = false) {
         if (game.game_over() || timeOutOccurred) {
             clearInterval(timerInterval);
@@ -1054,7 +1087,6 @@
         }
     }
 
-    /* 📊 مراجعة المباراة */
     function reviewMove(index) {
         if (gameHistoryVerbose.length === 0) return;
 
