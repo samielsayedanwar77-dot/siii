@@ -13,6 +13,7 @@
     
     <style>
         :root {
+            color-scheme: light; /* إجبار الموبايل على عرض الألوان بدون تعديل تلقائي من الوضع الليلي */
             --bg-main: #161512;
             --panel-bg: #21201d;
             --panel-card: #2b2925;
@@ -31,7 +32,7 @@
 
             /* ألوان القطع الافتراضية */
             --white-piece-color: #ffffff;
-            --black-piece-color: #1a1a1a;
+            --black-piece-color: #ff3333; /* جعل الأسود أحمر افتراضياً لتمييز أفضل على الموبايل */
         }
 
         body.theme-classic { --board-dark: #769656; --board-light: #eeeed2; }
@@ -217,17 +218,18 @@
             z-index: 1;
             cursor: grab;
             transition: transform 0.1s ease;
+            -webkit-font-smoothing: antialiased;
         }
         .piece-element:hover { transform: scale(1.15); }
 
-        /* تخصيص ألوان القطع الديناميكي مع ظلال متباينة */
+        /* تخصيص ألوان القطع الديناميكي وإجبار المتصفح على الثبات */
         .piece-element.white-piece {
             color: var(--white-piece-color) !important;
-            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.9)) drop-shadow(0px 0px 2px #000);
+            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.9)) drop-shadow(0px 0px 1px #000);
         }
         .piece-element.black-piece {
             color: var(--black-piece-color) !important;
-            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.9)) drop-shadow(0px 0px 2px #fff);
+            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.9)) drop-shadow(0px 0px 1px #fff);
         }
 
         .move-badge-icon {
@@ -478,9 +480,9 @@
                 <div style="flex: 1;">
                     <label style="font-size: 11px; color: var(--text-muted);">لون قطع الفريق الثاني:</label>
                     <select id="black-color-select" onchange="changePieceColor('black', this.value)">
+                        <option value="#ff3333">🔴 أحمر ناري (مميز)</option>
                         <option value="#1a1a1a">⚫ أسود (الكلاسيكي)</option>
                         <option value="#ff69b4">🌸 بينك / وردي</option>
-                        <option value="#ff3333">🔴 أحمر ناري</option>
                         <option value="#00d2ff">🔵 أزرق سيبر</option>
                         <option value="#2ecc71">🟢 أخضر زمردي</option>
                         <option value="#ffd700">🟡 ذهبي لامع</option>
@@ -613,13 +615,18 @@
         document.getElementById('theme-select').value = savedTheme;
     }
 
-    function changePieceColor(team, color) {
+    function changePieceColor(team, color, isRemoteUpdate = false) {
         if (team === 'white') {
             document.documentElement.style.setProperty('--white-piece-color', color);
-            localStorage.setItem('chess_white_piece_color', color);
+            if (!isRemoteUpdate) localStorage.setItem('chess_white_piece_color', color);
         } else {
             document.documentElement.style.setProperty('--black-piece-color', color);
-            localStorage.setItem('chess_black_piece_color', color);
+            if (!isRemoteUpdate) localStorage.setItem('chess_black_piece_color', color);
+        }
+
+        // إذا كان هناك اتصال أونلاين، شارك تحديث اللون فوراً مع الخصم
+        if (!isRemoteUpdate && isOnlineGame && conn && conn.open) {
+            conn.send({ type: 'color_update', whiteColor: getComputedStyle(document.documentElement).getPropertyValue('--white-piece-color').trim(), blackColor: getComputedStyle(document.documentElement).getPropertyValue('--black-piece-color').trim() });
         }
     }
 
@@ -770,7 +777,7 @@
         checkGameStatus(true);
     }
 
-    /* 🌐 إعداد الأونلاين 🌐 */
+    /* 🌐 إعداد الأونلاين والمزامنة 🌐 */
     let peer = null, conn = null;
     let myCleanID = "";
 
@@ -831,7 +838,9 @@
 
     function setupPeerListeners() {
         conn.on('open', () => {
-            conn.send({ type: 'handshake', name: userName, elo: playerELO });
+            let myWhite = getComputedStyle(document.documentElement).getPropertyValue('--white-piece-color').trim();
+            let myBlack = getComputedStyle(document.documentElement).getPropertyValue('--black-piece-color').trim();
+            conn.send({ type: 'handshake', name: userName, elo: playerELO, whiteColor: myWhite, blackColor: myBlack });
         });
 
         conn.on('data', (data) => {
@@ -841,8 +850,14 @@
                 document.getElementById('opponent-avatar').innerText = "👤";
                 document.getElementById('game-status').innerText = `⚔️ ماتش أونلاين ضد: ${data.name}`;
                 
+                // مزامنة ألوان المنافس لمنع التشابه
+                if (data.whiteColor) changePieceColor('white', data.whiteColor, true);
+                if (data.blackColor) changePieceColor('black', data.blackColor, true);
+
                 if (myColor === 'w') {
-                    conn.send({ type: 'handshake_ack', name: userName, elo: playerELO });
+                    let myWhite = getComputedStyle(document.documentElement).getPropertyValue('--white-piece-color').trim();
+                    let myBlack = getComputedStyle(document.documentElement).getPropertyValue('--black-piece-color').trim();
+                    conn.send({ type: 'handshake_ack', name: userName, elo: playerELO, whiteColor: myWhite, blackColor: myBlack });
                 }
                 
                 resetGame();
@@ -853,9 +868,17 @@
                 document.getElementById('opponent-elo').innerText = data.elo;
                 document.getElementById('opponent-avatar').innerText = "👤";
                 document.getElementById('game-status').innerText = `⚔️ ماتش أونلاين ضد: ${data.name}`;
+                
+                if (data.whiteColor) changePieceColor('white', data.whiteColor, true);
+                if (data.blackColor) changePieceColor('black', data.blackColor, true);
+
                 resetGame();
                 updateBoard();
                 startTimer();
+            } else if (data.type === 'color_update') {
+                if (data.whiteColor) changePieceColor('white', data.whiteColor, true);
+                if (data.blackColor) changePieceColor('black', data.blackColor, true);
+                updateBoard();
             } else if (data.move) {
                 const moveResult = game.move(data.move);
                 if (moveResult) {
