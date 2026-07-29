@@ -28,6 +28,10 @@
             --highlight: rgba(255, 255, 51, 0.5);
             --last-move: rgba(245, 246, 130, 0.85);
             --in-check: rgba(231, 76, 60, 0.85);
+
+            /* ألوان القطع الافتراضية */
+            --white-piece-color: #ffffff;
+            --black-piece-color: #1a1a1a;
         }
 
         body.theme-classic { --board-dark: #769656; --board-light: #eeeed2; }
@@ -216,13 +220,14 @@
         }
         .piece-element:hover { transform: scale(1.15); }
 
+        /* تخصيص ألوان القطع الديناميكي مع ظلال متباينة */
         .piece-element.white-piece {
-            color: #ffffff !important;
-            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.8)) drop-shadow(0px 0px 1px #000);
+            color: var(--white-piece-color) !important;
+            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.9)) drop-shadow(0px 0px 2px #000);
         }
         .piece-element.black-piece {
-            color: #1a1a1a !important;
-            filter: drop-shadow(0px 1px 1px rgba(255,255,255,0.6)) drop-shadow(0px 2px 4px rgba(0,0,0,0.9));
+            color: var(--black-piece-color) !important;
+            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.9)) drop-shadow(0px 0px 2px #fff);
         }
 
         .move-badge-icon {
@@ -440,13 +445,14 @@
     <!-- الشريط الجانبي -->
     <div class="sidebar">
 
-        <!-- 👤 اسم اللاعب والتسجيل والثيمات -->
+        <!-- 👤 اسم اللاعب والتسجيل والثيمات والألوان -->
         <div class="card">
-            <h3>👤 الملف الشخصي والمظهر</h3>
+            <h3>👤 الملف الشخصي وتخصيص الألوان</h3>
             <div style="display: flex; gap: 4px; margin-bottom: 6px;">
                 <input type="text" id="username-input" placeholder="سجل اسمك هنا..." style="margin:0;">
                 <button class="btn-dark" onclick="saveUsername()" style="margin:0; width: 35%;">تسجيل/تحديث</button>
             </div>
+            
             <label style="font-size: 11px; color: var(--text-muted);">اختر ثيم الرقعة:</label>
             <select id="theme-select" onchange="changeTheme(this.value)">
                 <option value="theme-classic">🪵 كلاسيكي (Classic Green)</option>
@@ -454,6 +460,34 @@
                 <option value="theme-ocean">🌊 المحيط الأزرق (Ocean Breeze)</option>
                 <option value="theme-neon">🌌 نيون سيبر (Cyber Neon)</option>
             </select>
+
+            <!-- 🎨 اختيار ألوان الفرق المخصصة -->
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: var(--text-muted);">لون قطع الفريق الأول:</label>
+                    <select id="white-color-select" onchange="changePieceColor('white', this.value)">
+                        <option value="#ffffff">⚪ أبيض (الكلاسيكي)</option>
+                        <option value="#ff69b4">🌸 بينك / وردي</option>
+                        <option value="#ff3333">🔴 أحمر ناري</option>
+                        <option value="#00d2ff">🔵 أزرق سيبر</option>
+                        <option value="#2ecc71">🟢 أخضر زمردي</option>
+                        <option value="#ffd700">🟡 ذهبي لامع</option>
+                        <option value="#a855f7">💜 أرجواني / بنفسجي</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: var(--text-muted);">لون قطع الفريق الثاني:</label>
+                    <select id="black-color-select" onchange="changePieceColor('black', this.value)">
+                        <option value="#1a1a1a">⚫ أسود (الكلاسيكي)</option>
+                        <option value="#ff69b4">🌸 بينك / وردي</option>
+                        <option value="#ff3333">🔴 أحمر ناري</option>
+                        <option value="#00d2ff">🔵 أزرق سيبر</option>
+                        <option value="#2ecc71">🟢 أخضر زمردي</option>
+                        <option value="#ffd700">🟡 ذهبي لامع</option>
+                        <option value="#a855f7">💜 أرجواني / بنفسجي</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <!-- 🤖 اللعب ضد البوت -->
@@ -469,7 +503,7 @@
             <button class="btn-green" onclick="startBotGame()">بدء مباراة ضد البوت ⚡</button>
         </div>
 
-        <!-- 🌐 نظام أونلاين المحسن ومعدل بالكامل -->
+        <!-- 🌐 نظام أونلاين -->
         <div class="card">
             <h3>🌐 اللعب أونلاين السريع</h3>
             <div style="margin-bottom: 6px;">
@@ -568,6 +602,7 @@
     const piecesSets = { 'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'P': '♟', 'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚' };
     const pieceValues = { p: 1, n: 3, b: 3.25, r: 5, q: 9, k: 0 };
 
+    /* --- إدارة ثيم الرقعة وألوان القطع --- */
     function changeTheme(themeName) {
         document.body.className = themeName;
         localStorage.setItem('chess_saved_theme', themeName);
@@ -576,6 +611,28 @@
     if (savedTheme) {
         changeTheme(savedTheme);
         document.getElementById('theme-select').value = savedTheme;
+    }
+
+    function changePieceColor(team, color) {
+        if (team === 'white') {
+            document.documentElement.style.setProperty('--white-piece-color', color);
+            localStorage.setItem('chess_white_piece_color', color);
+        } else {
+            document.documentElement.style.setProperty('--black-piece-color', color);
+            localStorage.setItem('chess_black_piece_color', color);
+        }
+    }
+
+    // استعادة الألوان المخصصة المحفوظة
+    const savedWhiteColor = localStorage.getItem('chess_white_piece_color');
+    const savedBlackColor = localStorage.getItem('chess_black_piece_color');
+    if (savedWhiteColor) {
+        changePieceColor('white', savedWhiteColor);
+        document.getElementById('white-color-select').value = savedWhiteColor;
+    }
+    if (savedBlackColor) {
+        changePieceColor('black', savedBlackColor);
+        document.getElementById('black-color-select').value = savedBlackColor;
     }
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -713,7 +770,7 @@
         checkGameStatus(true);
     }
 
-    /* 🌐 إعداد الأونلاين المطور بالكامل لتجنب مشاكل عدم الاتصال 🌐 */
+    /* 🌐 إعداد الأونلاين 🌐 */
     let peer = null, conn = null;
     let myCleanID = "";
 
@@ -722,9 +779,7 @@
     }
 
     function initPeer() {
-        if (peer) {
-            peer.destroy();
-        }
+        if (peer) peer.destroy();
 
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
@@ -776,7 +831,6 @@
 
     function setupPeerListeners() {
         conn.on('open', () => {
-            // إرسال معلومات المصافحة المتبادلة
             conn.send({ type: 'handshake', name: userName, elo: playerELO });
         });
 
@@ -787,7 +841,6 @@
                 document.getElementById('opponent-avatar').innerText = "👤";
                 document.getElementById('game-status').innerText = `⚔️ ماتش أونلاين ضد: ${data.name}`;
                 
-                // لو كنا المستضيف ولم نرسل المصافحة، نرد بالمصافحة أيضاً
                 if (myColor === 'w') {
                     conn.send({ type: 'handshake_ack', name: userName, elo: playerELO });
                 }
